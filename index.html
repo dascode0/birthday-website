@@ -22,8 +22,9 @@ button{font:inherit}
 .progress{position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:80;display:flex;gap:6px;padding:7px 10px;border-radius:30px;background:rgba(255,255,255,.62);backdrop-filter:blur(12px);box-shadow:0 8px 25px rgba(60,30,50,.08)}
 .dot{width:7px;height:7px;border-radius:20px;background:#d9cbd6;transition:.3s}
 .dot.active{width:22px;background:var(--pink)}
-.slide{position:absolute;inset:0;display:grid;place-items:center;padding:72px 16px 34px;opacity:0;visibility:hidden;transform:translateX(35px) scale(.98);transition:.55s cubic-bezier(.2,.8,.2,1);overflow:auto}
-.slide.active{opacity:1;visibility:visible;transform:none}
+.slide{position:absolute;inset:0;display:grid;place-items:center;padding:72px 16px 34px;opacity:0;visibility:hidden;transform:translateX(35px) scale(.98);pointer-events:none;transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1),visibility 0s linear .55s;overflow:auto}
+.slide.active{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition-delay:0s}
+.slide.exiting{opacity:0;visibility:visible;transform:translateX(-35px) scale(.98);pointer-events:none;transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
 .inner{width:min(100%,560px);text-align:center;position:relative;z-index:2}
 .card{background:var(--card);border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:30px 22px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}
 .kicker{font-size:11px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:#9b7aa8;margin:0 0 8px}
@@ -40,7 +41,7 @@ h2{font-size:clamp(38px,9vw,58px)}
 .photo-wrap{width:min(82vw,350px);margin:16px auto 0;position:relative;touch-action:pan-y}
 .photo-frame{background:white;padding:9px 9px 13px;border-radius:7px;box-shadow:0 18px 45px rgba(50,30,50,.22);transform:rotate(-2deg);position:relative}
 .photo-frame::before{content:"";position:absolute;width:75px;height:20px;top:-10px;left:50%;transform:translateX(-50%) rotate(-2deg);background:rgba(255,198,220,.8);z-index:3}
-.photo-frame img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;background:linear-gradient(135deg,#f0e4f7,#ffe3ec)}
+.photo-frame img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;background:linear-gradient(135deg,#f0e4f7,#ffe3ec);transition:opacity .18s ease}
 .photo-frame .caption{font-family:Caveat,cursive;font-size:21px;margin-top:5px}
 .photo-meta{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:12px}
 .photo-count{font-size:13px;font-weight:700;color:#80667f}
@@ -214,15 +215,16 @@ const photos=[
   ['img7.jpeg', 'Cool, confident, and completely unforgettable 🕶️'],
   ['img1.jpeg', 'Traditional beauty with a heart full of grace 💞']
 ];
-let photoIndex=0,photoTimer=null;
+let photoIndex=0,photoTimer=null,photoSwapTimer=null;
 function makeDots(id){const el=document.getElementById(id);photos.forEach((_,i)=>{const s=document.createElement('span');if(i===0)s.className='active';s.setAttribute('role','button');s.setAttribute('tabindex','0');s.setAttribute('aria-label',`Show photo ${i+1}`);s.addEventListener('click',()=>setPhoto(i));s.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setPhoto(i)}});el.appendChild(s)})}
 makeDots('photoDots');makeDots('photoDots2');
-function setPhoto(i){photoIndex=(i+photos.length)%photos.length;const [src,cap]=photos[photoIndex];['photo','photo2'].forEach(id=>{const im=document.getElementById(id);im.style.opacity=0;setTimeout(()=>{im.src=src;im.style.opacity=1},120)});document.getElementById('caption').textContent=cap;document.getElementById('caption2').textContent=cap;document.getElementById('count').textContent=`${photoIndex+1} / 7`;document.getElementById('count2').textContent=`${photoIndex+1} / 7`;document.querySelectorAll('#photoDots span,#photoDots2 span').forEach((d,n)=>d.classList.toggle('active',n===photoIndex));}
+function setPhoto(i){photoIndex=(i+photos.length)%photos.length;const [src,cap]=photos[photoIndex];clearTimeout(photoSwapTimer);['photo','photo2'].forEach(id=>document.getElementById(id).style.opacity=0);photoSwapTimer=setTimeout(()=>{['photo','photo2'].forEach(id=>{const im=document.getElementById(id);im.src=src;im.style.opacity=1})},180);document.getElementById('caption').textContent=cap;document.getElementById('caption2').textContent=cap;document.getElementById('count').textContent=`${photoIndex+1} / 7`;document.getElementById('count2').textContent=`${photoIndex+1} / 7`;document.querySelectorAll('#photoDots span,#photoDots2 span').forEach((d,n)=>d.classList.toggle('active',n===photoIndex));}
 function startPhotos(){clearInterval(photoTimer);photoTimer=setInterval(()=>setPhoto(photoIndex+1),3500)}
-function go(n){if(n<1||n>6)return;slides.forEach(s=>s.classList.toggle('active',+s.dataset.slide===n));current=n;document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===n-1));if(n===3||n===4)startPhotos();else clearInterval(photoTimer);if(n===6)confetti();}
+let isTransitioning=false,navigationTimer=null;
+function go(n){if(n<1||n>6||n===current||isTransitioning)return;isTransitioning=true;const outgoing=slides.find(s=>+s.dataset.slide===current),incoming=slides.find(s=>+s.dataset.slide===n);outgoing.classList.remove('active');outgoing.classList.add('exiting');incoming.classList.remove('exiting');incoming.classList.add('active');current=n;document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===n-1));if(n===3||n===4)startPhotos();else clearInterval(photoTimer);if(n===6)confetti();clearTimeout(navigationTimer);navigationTimer=setTimeout(()=>{outgoing.classList.remove('exiting');isTransitioning=false},560)}
 for(let i=1;i<=6;i++){const d=document.createElement('span');d.className='dot'+(i===1?' active':'');document.getElementById('progress').appendChild(d)}
 setPhoto(0);startPhotos();
-let sx=0;document.addEventListener('touchstart',e=>sx=e.changedTouches[0].screenX,{passive:true});document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-sx;if(Math.abs(dx)>55)go(current+(dx<0?1:-1))},{passive:true});
+let sx=0;document.addEventListener('touchstart',e=>{if(!isTransitioning)sx=e.changedTouches[0].screenX},{passive:true});document.addEventListener('touchend',e=>{if(isTransitioning)return;const dx=e.changedTouches[0].screenX-sx;if(Math.abs(dx)>55)go(current+(dx<0?1:-1))},{passive:true});
 const gallery=document.getElementById('gallery');const gallery2=document.getElementById('gallery2');[gallery,gallery2].forEach(g=>g.addEventListener('click',()=>setPhoto(photoIndex+1)));
 
 let bgm=document.getElementById('bgm'),musicBtn=document.getElementById('musicBtn');bgm.loop=false;bgm.volume=1;
