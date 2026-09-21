@@ -45,7 +45,7 @@ h2{font-size:clamp(38px,9vw,58px)}
 .photo-meta{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:12px}
 .photo-count{font-size:13px;font-weight:700;color:#80667f}
 .photo-dots{display:flex;justify-content:center;gap:5px;margin-top:9px}
-.photo-dots span{width:6px;height:6px;border-radius:10px;background:#d7c8d4;transition:.3s}
+.photo-dots span{width:6px;height:6px;border-radius:10px;background:#d7c8d4;transition:.3s;cursor:pointer}
 .photo-dots span.active{width:18px;background:var(--pink)}
 .photo-hint{font-size:12px;opacity:.55;margin:8px 0 0}
 .message{text-align:left;margin:16px 0 0;padding:16px;border-radius:20px;background:#fff8fb;border:1px solid #f7dbe6;line-height:1.7;font-size:15px}
@@ -55,17 +55,28 @@ h2{font-size:clamp(38px,9vw,58px)}
 .cake{font-size:82px;cursor:pointer;user-select:none;display:inline-block;animation:bob 2s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-7px)}}
 .cake-stage{position:relative;width:190px;height:128px;margin:4px auto 0;touch-action:none;user-select:none}
-.cake{position:absolute;bottom:0;left:50%;transform:translateX(-50%);margin:0;cursor:default}
+.cake{position:absolute;bottom:0;left:50%;width:104px;height:90px;transform:translateX(-50%);margin:0;cursor:pointer}
+.cake-whole,.cake-half{position:absolute;inset:0;font-size:82px;line-height:1;filter:drop-shadow(0 7px 5px rgba(73,38,65,.16))}
+.cake-half{opacity:0;transition:opacity .05s linear;pointer-events:none}
+.cake-half.left{clip-path:inset(0 50% 0 0)}
+.cake-half.right{clip-path:inset(0 0 0 50%)}
 .knife{position:absolute;top:0;left:50%;transform:translateX(-50%) rotate(-18deg);font-size:48px;line-height:1;cursor:grab;z-index:2;filter:drop-shadow(0 5px 4px rgba(50,30,50,.18));transition:transform .35s ease}
 .knife:active{cursor:grabbing}
-.swipe-mark{position:absolute;top:42px;left:50%;width:34px;height:34px;border:2px dashed var(--pink);border-radius:50%;transform:translateX(-50%);opacity:.65;animation:pulse 1.2s ease-in-out infinite}
-.cake-stage.cut .knife{transform:translateX(-50%) translateY(-42px) rotate(-38deg);opacity:0}
+.swipe-mark{position:absolute;top:42px;left:50%;width:34px;height:34px;border-radius:50%;transform:translateX(-50%);background:#fff;color:var(--pink);box-shadow:0 5px 14px rgba(73,38,65,.16);opacity:.9;animation:pulse 1.2s ease-in-out infinite}
+.swipe-mark::after{content:"↑";display:grid;place-items:center;height:100%;font-size:23px;font-weight:700}
+.cake-stage.cut .knife{animation:knifeSlice .65s cubic-bezier(.2,.8,.2,1) forwards;pointer-events:none}
 .cake-stage.cut .swipe-mark{display:none}
-.cake-stage.cut .cake{animation:cutCake .65s ease-out forwards}
+.cake-stage.cut .cake-whole{animation:wholeCake .22s ease-out forwards}
+.cake-stage.cut .cake-half{opacity:1}
+.cake-stage.cut .cake-half.left{animation:cakeLeft .72s .18s cubic-bezier(.2,.8,.2,1) forwards}
+.cake-stage.cut .cake-half.right{animation:cakeRight .72s .18s cubic-bezier(.2,.8,.2,1) forwards}
 .birthday-quote{display:none;margin:14px 0 0;padding:13px 16px;border-radius:18px;background:#fff2f7;color:#6d3e57;font-family:Caveat,cursive;font-size:25px;line-height:1.15}
 .birthday-quote.show{display:block;animation:quoteIn .5s cubic-bezier(.2,.8,.2,1) both}
 @keyframes pulse{50%{transform:translateX(-50%) translateY(-8px);opacity:.2}}
-@keyframes cutCake{50%{transform:translateX(-54%) rotate(-4deg)}100%{transform:translateX(-50%) scale(1.08)}}
+@keyframes knifeSlice{0%{transform:translateX(-50%) translateY(-6px) rotate(-18deg)}55%{transform:translateX(-50%) translateY(72px) rotate(4deg)}100%{transform:translateX(-50%) translateY(92px) rotate(14deg);opacity:0}}
+@keyframes wholeCake{to{opacity:0;transform:scale(.96)}}
+@keyframes cakeLeft{from{transform:translateX(0)}to{transform:translateX(-17px) rotate(-9deg)}}
+@keyframes cakeRight{from{transform:translateX(0)}to{transform:translateX(17px) rotate(9deg)}}
 @keyframes quoteIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
 #musicBtn{position:fixed;left:14px;bottom:max(16px,env(safe-area-inset-bottom));z-index:100;width:48px;height:48px;border:0;border-radius:50%;background:linear-gradient(135deg,var(--pink),#ff4d83);color:white;font-size:19px;box-shadow:0 10px 25px rgba(255,79,129,.3)}
 #musicBtn.playing{animation:spin 3s linear infinite}
@@ -150,6 +161,15 @@ h2{font-size:clamp(38px,9vw,58px)}
                 way of making memories feel warm and meaningful.</span></div>
             <div class="reason"><span class="emoji">🫶</span><span>You deserve
                 kindness, peace, laughter, and beautiful days.</span></div>
+            <div class="reason"><span class="emoji">📸</span><span>Every photo
+                of you has its own little magic — you look so naturally cute and
+                lovely.</span></div>
+            <div class="reason"><span class="emoji">💖</span><span>Your
+                expressions, your smile, and the way you light up a moment make
+                every memory feel extra special.</span></div>
+            <div class="reason"><span class="emoji">🌷</span><span>You are
+                beautiful in the simplest moments, and that is what makes you
+                impossible to forget.</span></div>
             <div class="reason"><span class="emoji">✨</span><span>And honestly…
                 you are simply someone worth celebrating.</span></div>
             <button class="btn" style="margin-top:18px" onclick="go(6)">The
@@ -160,12 +180,21 @@ h2{font-size:clamp(38px,9vw,58px)}
             class="card">
             <p class="kicker">Make a wish</p><h2>Happy Birthday, beautiful
               💗</h2>
-            <div class="cake-stage" id="cakeStage" aria-label="Cake cutting game">
+            <div class="cake-stage" id="cakeStage"
+              aria-label="Cake cutting game">
               <span class="swipe-mark" aria-hidden="true"></span>
-              <span class="knife" id="knife" role="button" tabindex="0" aria-label="Swipe the knife upward to cut the cake">🔪</span>
-              <div class="cake" id="cake">🎂</div>
-            </div><p class="small" id="cakeHint">Drag the knife upward to cut the cake 🔪</p>
-            <div class="birthday-quote" id="birthdayQuote">“May every wish in your heart find its way to you. Happy Birthday!” ✨</div>
+              <span class="knife" id="knife" role="button" tabindex="0"
+                aria-label="Swipe the knife upward to cut the cake">🔪</span>
+              <div class="cake" id="cake" role="button" tabindex="0"
+                aria-label="Tap to cut the birthday cake">
+                <span class="cake-whole">🎂</span><span class="cake-half left"
+                  aria-hidden="true">🎂</span><span class="cake-half right"
+                  aria-hidden="true">🎂</span>
+              </div>
+            </div><p class="small" id="cakeHint">Drag the knife upward to cut
+              the cake 🔪</p>
+            <div class="birthday-quote" id="birthdayQuote">“May every wish in
+              your heart find its way to you. Happy Birthday!” ✨</div>
             <div class="message">I hope this new year of your life brings you
               many reasons to smile, peaceful moments when you need them, and
               people who make you feel truly appreciated. Keep being you.
@@ -177,10 +206,16 @@ h2{font-size:clamp(38px,9vw,58px)}
     <script>
 const slides=[...document.querySelectorAll('.slide')];let current=1;
 const photos=[
-  ['img6.jpeg','That smile 💕'],['img2.jpeg','A beautiful moment 🌷'],['img3.jpeg','Simply you ✨'],['img4.jpeg','One to remember 🎀'],['img5.jpeg','A little happiness 💗'],['img7.jpeg','Another favorite 🦋'],['img8.jpeg','Always worth remembering 💞']
+  ['img6.jpeg', 'That warm smile in all those lovely colours 💕'],
+  ['img2.jpeg', 'Grace looks beautiful on you in every saree 🌷'],
+  ['img3.jpeg', 'A flower in your hand, and calm beauty in your eyes ✨'],
+  ['img4.jpeg', 'Dressed up like a celebration — so elegant and bright 🎀'],
+  ['img5.jpeg', 'That cute smile can make any moment feel special 💗'],
+  ['img7.jpeg', 'Cool, confident, and completely unforgettable 🕶️'],
+  ['img1.jpeg', 'Traditional beauty with a heart full of grace 💞']
 ];
 let photoIndex=0,photoTimer=null;
-function makeDots(id){const el=document.getElementById(id);photos.forEach((_,i)=>{const s=document.createElement('span');if(i===0)s.className='active';el.appendChild(s)})}
+function makeDots(id){const el=document.getElementById(id);photos.forEach((_,i)=>{const s=document.createElement('span');if(i===0)s.className='active';s.setAttribute('role','button');s.setAttribute('tabindex','0');s.setAttribute('aria-label',`Show photo ${i+1}`);s.addEventListener('click',()=>setPhoto(i));s.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setPhoto(i)}});el.appendChild(s)})}
 makeDots('photoDots');makeDots('photoDots2');
 function setPhoto(i){photoIndex=(i+photos.length)%photos.length;const [src,cap]=photos[photoIndex];['photo','photo2'].forEach(id=>{const im=document.getElementById(id);im.style.opacity=0;setTimeout(()=>{im.src=src;im.style.opacity=1},120)});document.getElementById('caption').textContent=cap;document.getElementById('caption2').textContent=cap;document.getElementById('count').textContent=`${photoIndex+1} / 7`;document.getElementById('count2').textContent=`${photoIndex+1} / 7`;document.querySelectorAll('#photoDots span,#photoDots2 span').forEach((d,n)=>d.classList.toggle('active',n===photoIndex));}
 function startPhotos(){clearInterval(photoTimer);photoTimer=setInterval(()=>setPhoto(photoIndex+1),3500)}
@@ -197,12 +232,14 @@ musicBtn.addEventListener('click',e=>{e.stopPropagation();if(bgm.paused)playMusi
 document.addEventListener('pointerdown',e=>{if(e.target!==musicBtn&&bgm.paused)playMusic()},{once:true});bgm.addEventListener('ended',musicIcon);playMusic();
 function spark(x,y){['💗','✨','🎀','💕'].forEach((t,i)=>{const s=document.createElement('span');s.className='spark';s.textContent=t;s.style.left=(x+(i-1)*22)+'px';s.style.top=(y+(i%2)*8)+'px';document.body.appendChild(s);setTimeout(()=>s.remove(),1200)})}
 document.addEventListener('pointerdown',e=>spark(e.clientX,e.clientY));
-const cakeStage=document.getElementById('cakeStage'),knife=document.getElementById('knife');let knifeStartY=null,cakeCut=false;
-function cutCake(){if(cakeCut)return;cakeCut=true;cakeStage.classList.add('cut');document.getElementById('cake').textContent='🍰💖';document.getElementById('cakeHint').textContent='A wish made, a cake cut — let the celebration begin!';document.getElementById('birthdayQuote').classList.add('show');confetti()}
-knife.addEventListener('pointerdown',e=>{if(cakeCut)return;knifeStartY=e.clientY;knife.setPointerCapture(e.pointerId)});
-knife.addEventListener('pointermove',e=>{if(knifeStartY!==null&&knifeStartY-e.clientY>35)cutCake()});
-knife.addEventListener('pointerup',()=>knifeStartY=null);
-knife.addEventListener('pointercancel',()=>knifeStartY=null);
+const cakeStage=document.getElementById('cakeStage'),cake=document.getElementById('cake'),knife=document.getElementById('knife');let knifeStartY=null,cakeCut=false;
+function cutCake(){if(cakeCut)return;cakeCut=true;cakeStage.classList.add('cut');document.getElementById('cakeHint').textContent='A wish made, a cake cut — let the celebration begin!';document.getElementById('birthdayQuote').classList.add('show');confetti()}
+cakeStage.addEventListener('pointerdown',e=>{if(cakeCut)return;knifeStartY=e.clientY;cakeStage.setPointerCapture(e.pointerId)});
+cakeStage.addEventListener('pointermove',e=>{if(knifeStartY!==null&&knifeStartY-e.clientY>35)cutCake()});
+cakeStage.addEventListener('pointerup',()=>knifeStartY=null);
+cakeStage.addEventListener('pointercancel',()=>knifeStartY=null);
+cake.addEventListener('click',cutCake);
+cake.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cutCake()}});
 knife.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cutCake()}});
 function confetti(){for(let i=0;i<45;i++)setTimeout(()=>{const c=document.createElement('i');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.background=['#ff5f93','#a98bd7','#ffd166','#8fd5b4','#ff9fbd'][Math.floor(Math.random()*5)];c.style.animationDuration=(1.8+Math.random()*1.7)+'s';c.style.transform=`rotate(${Math.random()*180}deg)`;document.body.appendChild(c);setTimeout(()=>c.remove(),4000)},i*22)}
 </script>
